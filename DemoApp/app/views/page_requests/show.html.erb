@@ -1,0 +1,20 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Duration:</b>
+  <%= @page_request.duration %>
+</p>
+
+<p>
+  <b>Start time:</b>
+  <%= @page_request.start_time %>
+</p>
+
+<p>
+  <b>End time:</b>
+  <%= @page_request.end_time %>
+</p>
+
+
+<%= link_to 'Edit', edit_page_request_path(@page_request) %> |
+<%= link_to 'Back', page_requests_path %>

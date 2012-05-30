@@ -1,4 +1,6 @@
 DemoApp::Application.routes.draw do
+  resources :page_requests
+
   resources :posts
 
   resources :users

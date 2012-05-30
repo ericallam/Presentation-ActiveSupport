@@ -317,3 +317,135 @@ end
 # === Wrap up of Core Ext
 #
 # Where can you find these core extensions? In the source: (include directory structure)
+#
+# == The Rest of ActiveSupport
+#
+# === ActiveSupport::Notifications
+#
+# Rails exposes a ton of information about it's performance and with Notifications you can subscribe to this performance
+# instrumentation, or you could even instrument your own code.  When attempting to scale an application, data is critically
+# important.  If you can't measure it, you can't improve it.  Notifications allow you to measure everything, and provides a really
+# nice interface for listening.
+#
+# Let's look at ActiveRecord sql queries as a first step into notifications:
+
+# `config/initializers/subscribers.rb`
+ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  Rails.logger.info "(#{event.duration}) #{event.payload[:sql]}"
+end
+
+# Which will log a bunch of things that look like this:
+#
+# Started GET "/posts/1" for 127.0.0.1 at 2012-05-30 15:49:19 -0400
+#
+# (1.57) PRAGMA table_info("users")
+# (0.156) SELECT name FROM sqlite_master WHERE type = 'table' AND NOT name = 'sqlite_sequence' AND name = "users"
+# (0.078) PRAGMA table_info("users")
+# (0.13899999999999998) SELECT "users".* FROM "users" LIMIT 1
+# (0.14400000000000002) PRAGMA table_info("posts")
+# (0.182) SELECT name FROM sqlite_master WHERE type = 'table' AND NOT name = 'sqlite_sequence' AND name = "posts"
+# (0.098) PRAGMA table_info("posts")
+# (0.255) SELECT "posts".* FROM "posts" WHERE "posts"."id" = ? LIMIT 1
+#
+# Hey look, we are logging all of our SQL queries and how long they took to run!
+#
+# In fact, this is the same mechanism that ActiveRecord uses to log it's queries in development mode.
+#
+# The `"sql.active_record"` string specifies which events to listen to. `sql` is scoping the `active_record` namespace, but if we want
+# we could listen to all the active_record instruments:
+ActiveSupport::Notifications.subscribe(/action_controller/) do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  Rails.logger.info "(#{event.duration}) #{event.name}"
+end
+
+# Started GET "/posts/1" for 127.0.0.1 at 2012-05-30 15:49:19 -0400
+#
+# (0.004) start_processing.action_controller
+# (265.583) process_action.action_controlle
+#
+# Or we could listen to everything:
+ActiveSupport::Notifications.subscribe do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  Rails.logger.info "(#{event.duration}) #{event.name}"
+end
+
+# Started GET "/posts/1" for 127.0.0.1 at 2012-05-30 15:49:19 -0400
+#
+# (0.004) start_processing.action_controller
+# Processing by PostsController#show as HTML
+# (1.588) sql.active_record
+# (0.154) sql.active_record
+# (0.078) sql.active_record
+# (0.128) sql.active_record
+# (0.17300000000000001) sql.active_record
+# (0.17200000000000001) sql.active_record
+# (0.11) sql.active_record
+# (0.285) sql.active_record
+# (71.84599999999999) !render_template.action_view
+# (72.021) render_template.action_view
+# (62.852000000000004) !render_template.action_view
+# (195.006) process_action.action_controller
+#
+# What if we wanted to record each request to our Rails app in the database, along with helpful information about each request.
+#
+# We could just listen to the 'process_action.action_controller' event, and create a PageRequest record for each event:
+
+ActiveSupport::Notifications.subscribe("process_action.action_controller") do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  PageRequest.new.tap do |page|
+    page.status = event.payload[:status]
+    page.http_method = event.payload[:method]
+    page.path = event.payload[:path]
+    page.http_format = event.payload[:format]
+    page.controller_name = event.payload[:controller]
+    page.action_name = event.payload[:action]
+    page.view_runtime = event.payload[:view_runtime]
+    page.db_runtime = event.payload[:db_runtime]
+    page.duration = event.duration
+    page.save!
+  end
+end
+
+# http://cl.ly/1r0H1o103F3F2s1Y0P3Q
+#
+# You can easily instrument and subscribe to your own custom instruments
+#
+# For example, in codeschool, one of our major pieces of functionality is "running" somebody's code that they submitted.
+# It's important this is fast, or our student might get bored and decide to play minecraft or something.
+require 'active_support/notifications'
+
+class CodeSchoolRunner
+  def run!(code)
+    ActiveSupport::Notifications.instrument('run.codeschool', code: code, challenge: name) do
+      # run the challenge here
+    end
+  end
+end
+
+# And then elsewhere, we can subscribe to the `run.codeschool` event and save information to a Redis stats server:
+require 'redis'
+redis = Redis.new
+
+ActiveSupport::Notifications.subscribe('run.codeschool') do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  redis.hincrby("codeschool:run_counts", event.payload[:challenge], 1)
+  redis.hincrby("codeschool:run_total_durations", event.payload[:challenge], event.duration)
+end
+
+# Or you could use Statsd (https://github.com/noahhl/batsd)
+
+# And, in another part of my application, I can subscribe to the same event, but this time report the run to newrelic
+require 'newrelic_rpm'
+
+ActiveSupport::Notifications.subscribe("run.codeschool") do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+  stat = NewRelic::Agent.agent.stats_engine.get_stats_no_scope("Custom/Challenge/run")
+  stat.record_data_point(event.duration / 1000.0)
+end
+

@@ -11,12 +11,26 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120530173457) do
+ActiveRecord::Schema.define(:version => 20120530195257) do
 
   create_table "items", :force => true do |t|
     t.string   "name"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+  end
+
+  create_table "page_requests", :force => true do |t|
+    t.string   "status"
+    t.string   "http_method"
+    t.string   "path"
+    t.string   "http_format"
+    t.string   "controller_name"
+    t.string   "action_name"
+    t.float    "view_runtime"
+    t.float    "db_runtime"
+    t.float    "duration"
+    t.datetime "created_at",      :null => false
+    t.datetime "updated_at",      :null => false
   end
 
   create_table "posts", :force => true do |t|

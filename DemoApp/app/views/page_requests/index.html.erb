@@ -1,0 +1,23 @@
+<h1>Listing page_requests</h1>
+
+<table>
+  <tr>
+    <th>Request</th>
+    <th>Duration</th>
+    <th>View Runtime</th>
+    <th>DB Runtime</th>
+  </tr>
+
+<% @page_requests.each do |page_request| %>
+  <tr>
+    <td><%= page_request %></td>
+    <td><%= page_request.duration.round(2) %></td>
+    <td><%= page_request.view_runtime.round(2) %></td>
+    <td><%= page_request.db_runtime.round(2) %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Page request', new_page_request_path %>
