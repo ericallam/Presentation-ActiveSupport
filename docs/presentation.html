@@ -1,0 +1,59 @@
+<!DOCTYPE html>  <html> <head>   <title>presentation.rb</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               presentation.rb             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>== ActiveSupport Presentation
+
+</p>
+<p>ActiveSupport is the 2nd most popular gem in the world <a href="https://rubygems.org/stats">RubyGems Stats</a>
+
+</p>
+<p>Today, we are going to learn what&#39;s in it, how you are already using it in your Rails apps and
+how you can use is to write better Rails apps.
+
+</p>
+<p>This talk is going to be very fast paced.  I&#39;m going to try and get through as much as possible.  I want
+you to be able to walk away from this talk with a couple of really good ideas on how to improve your Rails app.
+
+</p>
+<p>What the heck <em>is</em> ActiveSupport?  It&#39;s the only entirely cross cutting dependency in Rails.  Every library uses it: ActiveRecord, ActionPack, ActiveModel, etc.
+It includes 2 different parts, the core extensions, and modules. We&#39;re going to start by looking at some cool core extensions. These are changes to the Ruby language or standard
+library
+
+</p>
+<p>=== in_groups_of
+
+</p>
+<p>How many times has your designer handed you some HTML to code that looks like this:
+
+</p>
+<pre><code class="html">&lt;ul&gt;
+  &lt;li&gt;Item 1&lt;/li&gt;
+  &lt;li&gt;Item 2&lt;/li&gt;
+  &lt;li&gt;Item 3&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Item 4&lt;/li&gt;
+  &lt;li&gt;Item 5&lt;/li&gt;
+  &lt;li&gt;Item 6&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Item 7&lt;/li&gt;
+  &lt;li&gt;Item 8&lt;/li&gt;
+  &lt;li&gt;Item 9&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>And you think to yourself, thanks designer, now I&#39;m going to have to write some really ugly ERB code to
+get this to work. Y U NO USE ONE UL?
+
+</p>
+<pre><code class="html">&lt;ul&gt;
+  &lt;% @items[0..2].each do |item| %&gt;
+    &lt;li&gt;&lt;%= item.name %&gt;&lt;/li&gt;
+  &lt;% end %&gt;
+&lt;/ul&gt;</code></pre>
+<p>=== Wrap up of Core Ext
+
+</p>
+<p>Where can you find these core extensions? In the source: (include directory structure)
+</p>
+             </td>             <td class="code">               <div class="highlight"><pre>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
