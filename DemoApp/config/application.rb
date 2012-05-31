@@ -9,6 +9,20 @@ if defined?(Bundler)
   # Bundler.require(:default, :assets, Rails.env)
 end
 
+ActiveSupport.on_load(:before_initialize) do
+  puts "before_initialize"
+end
+
+ActiveSupport.on_load(:after_initialize) do
+  puts "after_initialize"
+end
+
+ActiveSupport.on_load(:before_eager_load) do
+  puts "before_eager_load"
+end
+
+require_relative '../lib/demo_gem'
+
 module DemoApp
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
@@ -24,6 +38,7 @@ module DemoApp
 
     # Activate observers that should always be running.
     # config.active_record.observers = :cacher, :garbage_collector, :forum_observer
+    config.cache_store = :redis_store
 
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
@@ -55,5 +70,11 @@ module DemoApp
 
     # Version of your assets, change this if you want to expire all your assets
     config.assets.version = '1.0'
+
+    config.after_initialize do
+      ActiveSupport.on_load(:after_initialize) do
+        puts "after_initialize after"
+      end
+    end
   end
 end

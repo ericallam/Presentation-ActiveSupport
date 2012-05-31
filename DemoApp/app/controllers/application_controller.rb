@@ -1,10 +1,20 @@
+require 'open-uri'
+
 class ApplicationController < ActionController::Base
   protect_from_forgery
 
   around_filter :set_time_zone
   # around_filter :subscribe_to_action
+  
+  before_filter :fetch_tweets
 
   private
+
+  def fetch_tweets
+    @tweets = Rails.cache.fetch "companytweets", expires_in: 5.minutes, race_condition_ttl: 5.seconds do
+      JSON.parse(open('http://api.twitter.com/1/statuses/user_timeline.json?include_entities=true&screen_name=codeschool').read)
+    end
+  end
 
   def subscribe_to_action(&block)
     @events = []
